@@ -7,10 +7,34 @@ const { init } = require('./db');
 const seed = require('./seed');
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.split(',') : true }));
+
+const defaultOrigins = [
+  'https://client-mu-khaki-63.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
+const envOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((o) => o.trim())
+  : [];
+
+const allowedOrigins = Array.from(new Set([...envOrigins, ...defaultOrigins]));
+
+const corsOptions = {
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
+app.get('/', (req, res) => res.json({ status: 'ok' }));
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/templates', require('./routes/templates'));
 app.use('/api/favorites', require('./routes/favorites'));
