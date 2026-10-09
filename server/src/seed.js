@@ -1,4 +1,4 @@
-const { db, init } = require('./db');
+const Template = require('./models/Template');
 
 const templates = [
   { name: 'SaaS Landing Page', description: 'A clean, conversion-focused landing page for software products.', category: 'Landing Page', thumbnail_url: 'https://picsum.photos/seed/saas/600/400' },
@@ -11,15 +11,19 @@ const templates = [
 ];
 
 async function seed() {
-  await init();
-  const [{ count }] = await db('templates').count({ count: '*' });
-  if (Number(count) > 0) return console.log('Templates already seeded.');
-  await db('templates').insert(templates);
+  const count = await Template.countDocuments();
+  if (count > 0) return console.log('Templates already seeded.');
+  await Template.insertMany(templates);
   console.log(`Seeded ${templates.length} templates.`);
 }
 
 if (require.main === module) {
-  seed().then(() => db.destroy()).catch((e) => { console.error(e); process.exit(1); });
+  const { connectDB } = require('./db');
+  require('dotenv').config();
+  connectDB()
+    .then(seed)
+    .then(() => process.exit(0))
+    .catch((e) => { console.error(e); process.exit(1); });
 }
 
 module.exports = seed;

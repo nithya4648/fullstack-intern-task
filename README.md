@@ -5,10 +5,16 @@ A full-stack app where users can register, log in, browse templates, and save th
 **Name:** Nithya  
 **Contact:** nithya4648@gmail.com
 
+## Live Demo
+- **Frontend App:** [https://client-mu-khaki-63.vercel.app](https://client-mu-khaki-63.vercel.app)
+- **Backend API:** [https://fullstack-intern-task-cq3g.onrender.com](https://fullstack-intern-task-cq3g.onrender.com)
+
+> **Note:** The backend is hosted on Render's free tier. If the server is idle, the initial request may take about 60 seconds to wake up.
+
 ## Tech Stack
 - **Frontend:** React (Vite), Tailwind CSS, Axios, React Router
 - **Backend:** Node.js, Express.js
-- **Database:** SQLite (via Knex.js, no install needed)
+- **Database:** MongoDB + Mongoose
 - **Auth:** JWT + bcrypt password hashing
 
 ## Setup
@@ -20,9 +26,12 @@ You need Node.js 18+ installed.
 cd server
 npm install
 cp .env.example .env     # on Windows: copy .env.example .env
+```
+Ensure `MONGODB_URI` in `server/.env` is set to a valid MongoDB connection string (e.g. MongoDB Atlas).
+```bash
 npm start
 ```
-Runs on http://localhost:5000. The database file is created and **7 sample templates are seeded automatically** on first start.
+Runs on http://localhost:5000. **7 sample templates are seeded automatically** on first start.
 
 ### 2. Frontend (new terminal)
 ```bash
@@ -53,6 +62,18 @@ Open http://localhost:5173
 - Protected `/favorites` route (redirects to login)
 - Search and category filter, Logout button (bonus)
 
-## Deployment (optional)
-- Backend (Render): root `server`, build `npm install`, start `npm start`, set `JWT_SECRET` and `CLIENT_ORIGIN` (your frontend URL).
-- Frontend (Vercel/Netlify): root `client`, build `npm run build`, output `dist`, set `VITE_API_URL` to `https://<your-backend>/api`. Add a rewrite of all routes to `/index.html` for React Router.
+## Deployment
+- **Backend (Render):**
+  - Root directory: `server`
+  - Build command: `npm install`
+  - Start command: `npm start`
+  - Environment variables:
+    - `MONGODB_URI`: MongoDB Atlas connection string
+    - `JWT_SECRET`: Secret key for JWT tokens
+    - `CLIENT_URL`: `https://client-mu-khaki-63.vercel.app` (Frontend CORS origin)
+- **Frontend (Vercel):**
+  - Root directory: `client`
+  - Build command: `npm run build`
+  - Output directory: `dist`
+  - Environment variable: `VITE_API_URL` set to `https://fullstack-intern-task-cq3g.onrender.com/api`
+  - Rewrites configuration in `client/vercel.json` for React Router client-side routing fallback.

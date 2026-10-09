@@ -3,7 +3,7 @@ if (!process.env.JWT_SECRET) process.env.JWT_SECRET = 'dev_secret_change_me';
 
 const express = require('express');
 const cors = require('cors');
-const { init } = require('./db');
+const { connectDB } = require('./db');
 const seed = require('./seed');
 
 const app = express();
@@ -14,11 +14,15 @@ const defaultOrigins = [
   'http://localhost:3000'
 ];
 
-const envOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(',').map((o) => o.trim())
-  : [];
+const parseOrigins = (val) =>
+  val ? val.split(',').map((o) => o.trim()).filter(Boolean) : [];
 
-const allowedOrigins = Array.from(new Set([...envOrigins, ...defaultOrigins]));
+const clientUrlOrigins = parseOrigins(process.env.CLIENT_URL);
+const clientOriginOrigins = parseOrigins(process.env.CLIENT_ORIGIN);
+
+const allowedOrigins = Array.from(
+  new Set([...clientUrlOrigins, ...clientOriginOrigins, ...defaultOrigins])
+);
 
 const corsOptions = {
   origin: allowedOrigins,
@@ -47,7 +51,8 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-init()
+
+connectDB()
   .then(seed)
   .then(() => app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`)))
   .catch((e) => { console.error(e); process.exit(1); });

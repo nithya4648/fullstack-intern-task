@@ -1,23 +1,34 @@
 const express = require('express');
-const { db } = require('../db');
+const mongoose = require('mongoose');
+const Template = require('../models/Template');
 
 const router = express.Router();
+
+const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 router.get('/', async (req, res, next) => {
   try {
     const { search, category } = req.query;
-    const q = db('templates').select('*').orderBy('id');
-    if (category) q.where({ category });
-    if (search) q.andWhere((b) => b.where('name', 'like', `%${search}%`).orWhere('description', 'like', `%${search}%`));
-    res.json(await q);
+    const filter = {};
+
+    if (category) filter.category = category;
+    if (search) {
+      const regex = new RegExp(escapeRegex(search), 'i');
+      filter.$or = [{ name: regex }, { description: regex }];
+    }
+
+    const templates = await Template.find(filter).sort({ _id: 1 });
+    res.json(templates);
   } catch (e) { next(e); }
 });
 
 router.get('/:id', async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id)) return res.status(400).json({ message: 'Invalid template id' });
-    const t = await db('templates').where({ id }).first();
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid template id' });
+    }
+    const t = await Template.findById(id);
     if (!t) return res.status(404).json({ message: 'Template not found' });
     res.json(t);
   } catch (e) { next(e); }
